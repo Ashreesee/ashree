@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import Navigation from './components/Navigation';
 import Home from './pages/Home';
 import Work from './pages/Work';
@@ -10,7 +9,8 @@ import Contact from './pages/Contact';
 function App() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [cursorVariant, setCursorVariant] = useState("default");
-  const location = useLocation();
+  const { scrollYProgress } = useScroll();
+  const opacity = useTransform(scrollYProgress, [0, 0.9], [1, 0]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -34,15 +34,48 @@ function App() {
       />
 
       <Navigation />
+
+      {/* Progress Bar */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500 transform origin-left z-50"
+        style={{ scaleX: scrollYProgress }}
+      />
       
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<Home />} />
-          <Route path="/work" element={<Work />} />
-          <Route path="/process" element={<Process />} />
-          <Route path="/contact" element={<Contact />} />
-        </Routes>
-      </AnimatePresence>
+      {/* Scroll Indicator */}
+      <motion.div
+        className="fixed bottom-8 right-8 bg-white/10 backdrop-blur-lg rounded-full p-4 z-40"
+        style={{ opacity }}
+      >
+        <motion.div
+          className="w-2 h-2 bg-purple-400 rounded-full"
+          animate={{
+            y: [0, 8, 0],
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+          }}
+        />
+      </motion.div>
+
+      {/* Main Content */}
+      <div className="snap-y snap-mandatory">
+        <section id="home" className="snap-start">
+          <Home />
+        </section>
+
+        <section id="work" className="snap-start">
+          <Work />
+        </section>
+
+        <section id="process" className="snap-start">
+          <Process />
+        </section>
+
+        <section id="contact" className="snap-start">
+          <Contact />
+        </section>
+      </div>
     </div>
   );
 }

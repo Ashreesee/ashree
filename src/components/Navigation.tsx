@@ -1,19 +1,17 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Link, useLocation } from "react-router-dom";
-import { Home, Palette, Briefcase, Send, Menu, X } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Home, Palette, Briefcase, Send, Menu, X } from 'lucide-react';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [visible, setVisible] = useState(true);
-  const location = useLocation();
 
   const links = [
-    { path: "/", icon: <Home size={22} />, label: "Home" },
-    { path: "/work", icon: <Briefcase size={22} />, label: "Work" },
-    { path: "/process", icon: <Palette size={22} />, label: "Process" },
-    { path: "/contact", icon: <Send size={22} />, label: "Contact" },
+    { href: '#home', icon: <Home size={22} />, label: 'Home' },
+    { href: '#work', icon: <Briefcase size={22} />, label: 'Work' },
+    { href: '#process', icon: <Palette size={22} />, label: 'Process' },
+    { href: '#contact', icon: <Send size={22} />, label: 'Contact' },
   ];
 
   useEffect(() => {
@@ -29,6 +27,36 @@ const Navigation = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
+
+  const scrollToSection = (href: string) => {
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      setIsOpen(false);
+    }
+  };
+
+  const [activeSection, setActiveSection] = useState('home');
+
+  useEffect(() => {
+    const handleSectionVisibility = () => {
+      const sections = links.map(link => link.href.substring(1));
+      const current = sections.find(section => {
+        const element = document.getElementById(section);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          return rect.top <= 100 && rect.bottom >= 100;
+        }
+        return false;
+      });
+      if (current) {
+        setActiveSection(current);
+      }
+    };
+
+    window.addEventListener('scroll', handleSectionVisibility);
+    return () => window.removeEventListener('scroll', handleSectionVisibility);
+  }, []);
 
   return (
     <motion.nav
@@ -57,28 +85,34 @@ const Navigation = () => {
 
       <div className="flex items-center justify-between px-6 py-3 relative">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2">
+        <a 
+          href="#home" 
+          className="flex items-center space-x-2"
+          onClick={(e) => {
+            e.preventDefault();
+            scrollToSection('#home');
+          }}
+        >
           <motion.span
             className="text-xl font-bold text-white border-b-2 border-transparent"
             whileHover={{ borderColor: "rgb(192,132,252)" }}
           >
             Ashree Chaurasiya
           </motion.span>
-        </Link>
+        </a>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex space-x-8">
           {links.map((link) => (
-            <Link
-              key={link.path}
-              to={link.path}
-              onClick={() => {
-                if (link.path === "/") {
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection(link.href);
               }}
               className={`flex items-center space-x-2 transition-all duration-300 ${
-                location.pathname === link.path
+                activeSection === link.href.substring(1)
                   ? "text-purple-400 font-bold animate-pulse"
                   : "text-white hover:text-purple-400"
               }`}
@@ -87,7 +121,7 @@ const Navigation = () => {
                 whileHover={{ scale: 1.1, rotate: 360 }}
                 whileTap={{ scale: 0.9 }}
                 animate={
-                  location.pathname === link.path
+                  activeSection === link.href.substring(1)
                     ? {
                         textShadow: [
                           "0px 0px 5px rgba(192,132,252,1)",
@@ -101,7 +135,7 @@ const Navigation = () => {
                 {link.icon}
               </motion.div>
               <span>{link.label}</span>
-            </Link>
+            </a>
           ))}
         </div>
 
@@ -128,24 +162,22 @@ const Navigation = () => {
           >
             <div className="px-4 py-3 space-y-2">
               {links.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => {
-                    setIsOpen(false);
-                    if (link.path === "/") {
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    scrollToSection(link.href);
                   }}
                   className={`flex items-center space-x-2 p-3 rounded-lg transition-all duration-300 ${
-                    location.pathname === link.path
+                    activeSection === link.href.substring(1)
                       ? "bg-purple-500/20 text-purple-400 font-bold animate-pulse"
                       : "text-white hover:bg-purple-500/20 hover:text-purple-400"
                   }`}
                 >
                   {link.icon}
                   <span>{link.label}</span>
-                </Link>
+                </a>
               ))}
             </div>
           </motion.div>
